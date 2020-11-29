@@ -67,6 +67,7 @@ func (s *server) Create(ctx context.Context, req *blogpb.CreateBlogRequest) (*bl
 
 }
 func (s *server) ReadBlog(ctx context.Context, req *blogpb.ReadBlogRequest) (*blogpb.ReadBlogResponse, error) {
+	fmt.Println("Read service server is invoked")
 	blogID := req.GetBlogID()
 	oid, err := primitive.ObjectIDFromHex(blogID)
 	if err != nil {
@@ -94,11 +95,12 @@ func (s *server) ReadBlog(ctx context.Context, req *blogpb.ReadBlogRequest) (*bl
 	}, nil
 }
 
+//StartServer : To start the server
 func main() {
 	//setting up mongo Server
 	mongoSetup()
 
-	lis, err := net.Listen("tcp", "0.0.0.0:8080")
+	lis, err := net.Listen("tcp", "0.0.0.0:4040")
 	if err != nil {
 		log.Fatalln("Unable to listen")
 

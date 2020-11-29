@@ -1,47 +1,44 @@
-package main
+package client
 
 import (
-	"context"
 	"fmt"
-	"log"
+	"os"
+	"os/signal"
 
 	"github.com/ankitanwar/GrpcWithMongoDBAndGin/blogpb"
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 )
 
-func main() {
+var (
+	router = gin.Default()
+	//C service Client
+	C  blogpb.BlogServiceClient
+	cc *grpc.ClientConn
+)
+
+//StartClient : To start the client service
+func StartClient() {
+	urlMapping()
+	connectServer()
+	go func() {
+		router.Run(":8081")
+	}()
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt)
+	<-ch
+	fmt.Println("Closing the Connection with server")
+	cc.Close()
+
+}
+func connectServer() {
 	opts := grpc.WithInsecure()
-	cc, err := grpc.Dial("localhost:8080", opts)
+	var err error
+	cc, err = grpc.Dial("localhost:4040", opts)
 	if err != nil {
 		fmt.Println("Error while connection to the server", err.Error())
 		panic(err)
 	}
-	defer cc.Close()
-	c := blogpb.NewBlogServiceClient(cc)
-	blog := &blogpb.Blog{
-		AuthorID: "hello",
-		Title:    "my first blog",
-		Content:  "hello world",
-	}
-	response, err := c.Create(context.Background(), &blogpb.CreateBlogRequest{Blog: blog})
-	if err != nil {
-		log.Fatalf("Unexpected error %v", err)
-		panic(err)
-	}
-
-	fmt.Println("The response from the server is ", response)
-
-	fmt.Println("Reading the Blog")
-
-	req := blogpb.ReadBlogRequest{
-		BlogID: "5fc1fc3efd9dd54eeab86a3a",
-	}
-
-	res, readErr := c.ReadBlog(context.Background(), &req)
-	if readErr != nil {
-		log.Fatalln("Some error has been occured while reading the blog", readErr)
-		panic(err)
-	}
-	fmt.Println("The value from read request is ", res)
-
+	C = blogpb.NewBlogServiceClient(cc)
+	fmt.Println("Connection to Server is successfull")
 }
