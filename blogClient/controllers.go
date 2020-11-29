@@ -21,11 +21,9 @@ func ReadBlog(c *gin.Context) {
 
 	res, readErr := C.ReadBlog(context.Background(), &req)
 	if readErr != nil {
-		fmt.Println("Some error has been occured over here")
 		c.JSON(http.StatusInternalServerError, readErr)
 		return
 	}
-	fmt.Println("Working till here")
 	c.JSON(http.StatusOK, res)
 }
 
